@@ -1,0 +1,4 @@
+Structs in internal package: main/utils/sample
+File: /home/runner/ThinUntimelyNanocad/utils/sample/g.go
+  Struct: Alpha
+    Field: Name, Type: string

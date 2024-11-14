@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-  // Specify the main file you are analyzing
   mainFilePath := "/home/runner/ThinUntimelyNanocad/utils/h.go"
   projectRoot := "/home/runner/ThinUntimelyNanocad"
   outputFilePath := "./structs_log.txt"
@@ -22,7 +21,6 @@ func main() {
     return
   }
 
-  // Open or create the output file
   logFile, err := os.Create(outputFilePath)
   if err != nil {
     fmt.Println("Error creating log file:", err)
@@ -30,17 +28,14 @@ func main() {
   }
   defer logFile.Close()
 
-  // Parse imports in the main file
   imports, err := getImports(mainFilePath)
   if err != nil {
     fmt.Println("Error getting imports:", err)
     return
   }
 
-  // Filter imports to only include internal packages (those starting with the module name)
   internalImports := filterInternalImports(imports, moduleName)
 
-  // For each internal import, locate and parse files to find structs
   for _, imp := range internalImports {
     logFile.WriteString(fmt.Sprintf("Structs in internal package: %s\n", imp))
     err := findStructsInPackage(projectRoot, imp, moduleName, logFile)
@@ -69,7 +64,6 @@ func getModuleName(goModPath string) (string, error) {
   return "", fmt.Errorf("module name not found in go.mod")
 }
 
-// getImports parses the main file to list all imported packages
 func getImports(filepath string) ([]string, error) {
   fset := token.NewFileSet()
   node, err := parser.ParseFile(fset, filepath, nil, parser.ImportsOnly)
@@ -96,9 +90,7 @@ func filterInternalImports(imports []string, moduleName string) []string {
   return internalImports
 }
 
-// findStructsInPackage locates the package files and logs all struct definitions with their fields
 func findStructsInPackage(projectRoot, packagePath, moduleName string, logFile *os.File) error {
-  // Convert package path to file path, removing the internal package portion based on module name
   relativePath := strings.TrimPrefix(packagePath, moduleName+"/")
   packageDir := filepath.Join(projectRoot, filepath.FromSlash(relativePath))
 
@@ -115,9 +107,7 @@ func findStructsInPackage(projectRoot, packagePath, moduleName string, logFile *
 
     // Log file path
     logFile.WriteString(fmt.Sprintf("File: %s\n", path))
-    foundStruct := false // Track if any structs are found in the file
-
-    // Inspect the file's AST for struct definitions
+    foundStruct := false 
     ast.Inspect(node, func(n ast.Node) bool {
       ts, ok := n.(*ast.TypeSpec)
       if ok {
@@ -130,7 +120,6 @@ func findStructsInPackage(projectRoot, packagePath, moduleName string, logFile *
       return true
     })
 
-    // If no structs were found, note it in the log file
     if !foundStruct {
       logFile.WriteString("  No structs found in this file.\n")
     }
@@ -141,10 +130,9 @@ func findStructsInPackage(projectRoot, packagePath, moduleName string, logFile *
   return err
 }
 
-// logStructFields logs each field's name and type in the struct
 func logStructFields(structType *ast.StructType, logFile *os.File) {
   for _, field := range structType.Fields.List {
-    // Field names
+
     var fieldNames []string
     for _, name := range field.Names {
       fieldNames = append(fieldNames, name.Name)
@@ -158,7 +146,6 @@ func logStructFields(structType *ast.StructType, logFile *os.File) {
   }
 }
 
-// exprToString converts an expression to a readable string representation
 func exprToString(expr ast.Expr) string {
   switch v := expr.(type) {
   case *ast.Ident:
@@ -174,6 +161,6 @@ func exprToString(expr ast.Expr) string {
   case *ast.StructType:
     return "struct{...}"
   default:
-    return fmt.Sprintf("%T", expr) // Fallback to the type
+    return fmt.Sprintf("%T", expr) 
   }
 }
